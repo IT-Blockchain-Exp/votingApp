@@ -61,4 +61,22 @@ constructor(string[] memory _candidateNames, uint256 _durationInMinutes) {
     }
         return votingEnd - block.timestamp;
     }
+
+    function getWinner() public view returns (string memory winnerName, uint256 winnerVoteCount) {
+    require(block.timestamp >= votingEnd, "Voting has not ended yet.");
+
+    uint256 highestVoteCount = 0;
+    uint256 winnerIndex = 0;
+    
+    for (uint256 i = 0; i < candidates.length; i++) {
+        if (candidates[i].voteCount > highestVoteCount) {
+            highestVoteCount = candidates[i].voteCount;
+            winnerIndex = i;
+        }
+    }
+
+    winnerName = candidates[winnerIndex].name;
+    winnerVoteCount = candidates[winnerIndex].voteCount;
+    }
+
 }

@@ -15,6 +15,8 @@ function App() {
   const [candidates, setCandidates] = useState([]);
   const [number, setNumber] = useState("");
   const [CanVote, setCanVote] = useState(true);
+  const [winnerName, setWinnerName] = useState("");
+  const [winnerVoteCount, setWinnerVoteCount] = useState(0);
 
   useEffect(() => {
     getCandidates();
@@ -92,7 +94,7 @@ function App() {
       signer
     );
     const status = await contractInstance.getVotingStatus();
-    console.log(status);
+
     setVotingStatus(status);
   }
 
@@ -143,6 +145,32 @@ function App() {
     setNumber(e.target.value);
   }
 
+  async function getWinner() {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    const signer = provider.getSigner();
+    const contractInstance = new ethers.Contract(
+      contractAddress,
+      contractAbi,
+      signer
+    );
+
+    // Retrieve winner details
+    try {
+      const [name, voteCount] = await contractInstance.getWinner();
+      setWinnerName(name);
+      setWinnerVoteCount(voteCount.toNumber());
+    } catch (error) {
+      console.error("Error fetching winner:", error);
+    }
+  }
+
+  useEffect(() => {
+    if (!votingStatus) {
+      getWinner();
+    }
+  }, [votingStatus]);
+
   return (
     <div className="App">
       {votingStatus ? (
@@ -160,7 +188,7 @@ function App() {
           <Login connectWallet={connectToMetamask} />
         )
       ) : (
-        <Finished />
+        <Finished winnerName={winnerName} winnerVoteCount={winnerVoteCount} />
       )}
     </div>
   );
